@@ -17,7 +17,7 @@ has '_zmq_context' => ( is => 'rw', lazy_build => 1, isa => 'ZeroMQ::Raw::Contex
 sub _build__zmq_context {
     my ($self) = @_;
 
-    my $c = ZeroMQ::Raw::Context->new( threads => 0 );
+    my $c = ZeroMQ::Raw::Context->new( threads => 10 );
     return $c;
 }
 
@@ -27,8 +27,10 @@ sub _build__zmq_sub {
     my $address = $self->subscribe_address
         or croak 'subscribe_address must be defined to publish messages';
 
-    my $sub = AnyEvent::ZeroMQ::Subscribe->new(context => $self->_zmq_context);
-    $sub->connect($self->address);
+    my $sub = AnyEvent::ZeroMQ::Subscribe->new(
+        context => $self->_zmq_context,
+        connect => $address,
+    );
 
     return $sub;
 }
@@ -39,8 +41,10 @@ sub _build__zmq_pub {
     my $address = $self->publish_address
         or croak 'publish_address must be defined to publish messages';
 
-    my $pub = AnyEvent::ZeroMQ::Publish->new(context => $self->_zmq_context);
-    $pub->connect($address);
+    my $pub = AnyEvent::ZeroMQ::Publish->new(
+        context => $self->_zmq_context,
+        connect => $address,
+    );
 
     return $pub;
 }

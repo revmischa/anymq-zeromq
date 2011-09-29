@@ -14,7 +14,9 @@ before publish => sub {
     my $pub = $self->bus->_zmq_pub;
 
     foreach my $event (@events) {
-        $self->bus->_zmq_pub->publish(JSON::to_json($event));
+        my $json = JSON::to_json($event);
+        warn $json;
+        $self->bus->_zmq_pub->publish($json);
     }
 };
 
