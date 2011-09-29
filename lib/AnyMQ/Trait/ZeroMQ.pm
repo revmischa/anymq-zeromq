@@ -6,6 +6,7 @@ use AnyEvent::ZeroMQ;
 use AnyEvent::ZeroMQ::Publish;
 use AnyEvent::ZeroMQ::Subscribe;
 use Carp qw/croak/;
+use JSON;
 
 has 'publish_address'   => ( is => 'rw', isa => 'Str' );
 has 'subscribe_address' => ( is => 'rw', isa => 'Str' );
@@ -13,6 +14,12 @@ has 'subscribe_address' => ( is => 'rw', isa => 'Str' );
 has '_zmq_sub' => ( is => 'rw', lazy_build => 1, isa => 'AnyEvent::ZeroMQ::Subscribe' );
 has '_zmq_pub' => ( is => 'rw', lazy_build => 1, isa => 'AnyEvent::ZeroMQ::Publish' );
 has '_zmq_context' => ( is => 'rw', lazy_build => 1, isa => 'ZeroMQ::Raw::Context' );
+has '_zmq_json' => ( is => 'rw', lazy_build => 1, isa => 'JSON' );
+
+sub _build__zmq_json {
+    my ($self) = @_;
+    return JSON->new->utf8;
+}
 
 sub _build__zmq_context {
     my ($self) = @_;

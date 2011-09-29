@@ -1,7 +1,7 @@
 package AnyMQ::Topic::Trait::ZeroMQ;
 
 use Any::Moose 'Role';
-use JSON;
+use ZeroMQ::Raw::Message;
 
 sub BUILD {}; after 'BUILD' => sub {
     my ($self) = @_;
@@ -14,8 +14,7 @@ before publish => sub {
     my $pub = $self->bus->_zmq_pub;
 
     foreach my $event (@events) {
-        my $json = JSON::to_json($event);
-        warn $json;
+        my $json = $self->bus->_zmq_json->encode($event);
         $self->bus->_zmq_pub->publish($json);
     }
 };
