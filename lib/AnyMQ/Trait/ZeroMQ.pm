@@ -5,6 +5,7 @@ use Any::Moose 'Role';
 use AnyEvent::ZeroMQ;
 use AnyEvent::ZeroMQ::Publish;
 use AnyEvent::ZeroMQ::Subscribe;
+use AnyMQ::Topic::Trait::ZeroMQ;
 use Carp qw/croak/;
 use JSON;
 

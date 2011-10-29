@@ -17,13 +17,13 @@ SKIP: {
 
 sub run_tests {
     my $pub_bus = AnyMQ->new_with_traits(
-	traits            => [ 'ZeroMQ' ],
-	publish_address   => 'tcp://localhost:4000',
+        traits            => [ 'ZeroMQ' ],
+        publish_address   => 'tcp://localhost:4000',
     );
 
     my $sub_bus = AnyMQ->new_with_traits(
-	traits            => [ 'ZeroMQ' ],
-	subscribe_address => 'tcp://localhost:4001',
+        traits            => [ 'ZeroMQ' ],
+        subscribe_address => 'tcp://localhost:4001',
     );
 
     my $pub_topic = $pub_bus->topic('ping');
