@@ -25,10 +25,10 @@ my $cv = AE::cv;
 
 # subscribe
 my $listener = $sub_bus->new_listener($sub_topic);
-$listener->poll(sub { warn "got ping!"; $cv->send });
+$listener->poll(sub { $cv->send });
 
 # publish
-$pub_topic->publish({ bleep => 'bloop' });
+$pub_topic->publish({ __type => 'ping', __params => { bleep => 'bloop' } });
 
 $cv->recv;
 

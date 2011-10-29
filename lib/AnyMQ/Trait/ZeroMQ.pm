@@ -61,10 +61,11 @@ sub new_topic {
     
     $opt = { name => $opt } unless ref $opt;
 
-    AnyMQ::Topic->new_with_traits(
+    return AnyMQ::Topic->new_with_traits(
         traits => [ 'ZeroMQ' ],
         %$opt,
-        bus => $self );
+        bus => $self,
+    );
 }
 
 sub DEMOLISH {}; after 'DEMOLISH' => sub {
