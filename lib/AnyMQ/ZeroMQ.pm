@@ -1,12 +1,8 @@
 package AnyMQ::ZeroMQ;
 
-use 5.006;
-
-use Any::Moose;
-
 =head1 NAME
 
-AnyMQ::ZeroMQ - AnyMQ adaptor to talk to ZeroMQ
+AnyMQ::ZeroMQ - AnyMQ adaptor for ZeroMQ
 
 =head1 VERSION
 
@@ -19,10 +15,24 @@ our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
-  my $bus = AnyMQ->new_with_traits(
-      traits  => ['ZeroMQ'],
-      address => 'localhost:4000',
+  # create a subscriber
+  my $sub_bus = AnyMQ->new_with_traits(
+      traits            => [ 'ZeroMQ' ],
+      subscribe_address => 'tcp://localhost:4001',
   );
+  # subscribe to topic
+  my $sub_topic = $sub_bus->topic('ping');
+  my $listener = $sub_bus->new_listener($sub_topic);
+  $listener->poll(sub { "got ping event!" });
+
+  # create a publisher
+  my $pub_bus = AnyMQ->new_with_traits(
+      traits  => ['ZeroMQ'],
+      publish_address => 'tcp://localhost:4000',  # accepts any address that ZeroMQ supports
+  );
+  my $pub_topic = $pub_bus->topic('ping');
+  $pub_topic->publish({ foo => 'bar' });
+
 
 =head1 AUTHOR
 
@@ -30,41 +40,11 @@ Mischa Spiegelmock, C<< <revmischa at cpan.org> >>
 
 =head1 BUGS
 
-Please report any bugs or feature requests to C<bug-anymq-zeromq at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=AnyMQ-ZeroMQ>.  I will be notified, and then you'll
-automatically be notified of progress on your bug as I make changes.
+Please use the GitHub issue tracker
 
+=head1 SEE ALSO
 
-
-
-=head1 SUPPORT
-
-You can find documentation for this module with the perldoc command.
-
-    perldoc AnyMQ::ZeroMQ
-
-
-You can also look for information at:
-
-=over 4
-
-=item * RT: CPAN's request tracker (report bugs here)
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=AnyMQ-ZeroMQ>
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/AnyMQ-ZeroMQ>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/AnyMQ-ZeroMQ>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/AnyMQ-ZeroMQ/>
-
-=back
+L<AnyMQ>, L<ZeroMQ::PubSub>
 
 
 =head1 ACKNOWLEDGEMENTS
