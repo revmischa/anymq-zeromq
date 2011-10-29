@@ -1,6 +1,6 @@
 #!perl
 
-use Test::More tests => 1;
+use Test::More tests => 2;
 use AnyEvent;
 use AnyMQ;
 
@@ -8,29 +8,39 @@ BEGIN {
     use_ok( 'AnyMQ::ZeroMQ' ) || print "Bail out!\n";
 }
 
-my $pub_bus = AnyMQ->new_with_traits(
-    traits            => [ 'ZeroMQ' ],
-    publish_address   => 'tcp://localhost:4000',
-);
+SKIP: {
+    skip "Set \$ENV{ZMQ_PUBSUB_TESTS} to test with ZeroMQ::PubSub", 1
+        unless $ENV{ZMQ_PUBSUB_TESTS};
 
-my $sub_bus = AnyMQ->new_with_traits(
-    traits            => [ 'ZeroMQ' ],
-    subscribe_address => 'tcp://localhost:4001',
-);
+    run_tests();
+}
 
-my $pub_topic = $pub_bus->topic('ping');
-my $sub_topic = $sub_bus->topic('ping');
+sub run_tests {
+    my $pub_bus = AnyMQ->new_with_traits(
+	traits            => [ 'ZeroMQ' ],
+	publish_address   => 'tcp://localhost:4000',
+    );
 
-my $cv = AE::cv;
+    my $sub_bus = AnyMQ->new_with_traits(
+	traits            => [ 'ZeroMQ' ],
+	subscribe_address => 'tcp://localhost:4001',
+    );
 
-# subscribe
-my $listener = $sub_bus->new_listener($sub_topic);
-$listener->poll(sub { $cv->send });
+    my $pub_topic = $pub_bus->topic('ping');
+    my $sub_topic = $sub_bus->topic('ping');
 
-# publish
-$pub_topic->publish({ __type => 'ping', __params => { bleep => 'bloop' } });
+    my $cv = AE::cv;
 
-$cv->recv;
+    # subscribe
+    my $listener = $sub_bus->new_listener($sub_topic);
+    $listener->poll(sub { $cv->send });
+
+    # publish
+    $pub_topic->publish({ __type => 'ping', __params => { bleep => 'bloop' } });
+
+    $cv->recv;
+    ok("Got ping");
+}
 
 
 
