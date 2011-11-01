@@ -3,7 +3,12 @@ package AnyMQ::Topic::Trait::ZeroMQ;
 use Any::Moose 'Role';
 use AnyEvent::ZeroMQ::Subscribe;
 
-has publisher_only => (is => "ro", isa => "Bool");
+has 'publisher_only' => (is => "ro", isa => "Bool");
+
+# we do not want to notify subscribers of events being published on
+# our publisher bus, otherwise we will get duplicates if we are
+# subscribed to those events.
+has 'publish_to_queues' => (default => sub { 0 });
 
 sub BUILD {}; after 'BUILD' => sub {
     my $self = shift;
@@ -23,31 +28,12 @@ sub BUILD {}; after 'BUILD' => sub {
             return;
         }
 
-        $self->receive_events($event);
+        $self->append_to_queues($event);
     });
 };
 
-# when publishing events, send them to the ZeroMQ server
-before publish => sub {
-    my ($self, @events) = @_;
-
-    $self->send_events(@events);
-};
-
-# this is the same as calling $self->publish, but does not trigger
-# publishing an event to the ZeroMQ server.
-sub receive_events {
-    my ($self, @events) = @_;
-
-    $self->reap_destroyed_listeners;
-    for (values %{$self->queues}) {
-        $_->append(@events);
-    }
-    $self->install_reaper if $self->reaper_interval;
-}
-
 # send events to ZeroMQ server
-sub send_events {
+after 'dispatch_messages' => sub {
     my ($self, @events) = @_;
     
     # if this bus is just listening for events, we don't need to
@@ -65,6 +51,6 @@ sub send_events {
 
         $self->bus->_zmq_pub->publish($json);
     }
-}
+};
 
 1;

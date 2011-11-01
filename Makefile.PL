@@ -17,7 +17,7 @@ WriteMakefile(
         'Any::Moose' => 0,
         'AnyEvent' => 0,
         'JSON' => 0,
-        'AnyEvent::ZeroMQ' => 0,
+        'AnyEvent::ZeroMQ' => '0.34',
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'AnyMQ-ZeroMQ-*' },
