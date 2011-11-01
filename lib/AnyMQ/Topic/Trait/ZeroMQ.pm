@@ -8,7 +8,7 @@ has 'publisher_only' => (is => "ro", isa => "Bool");
 # we do not want to notify subscribers of events being published on
 # our publisher bus, otherwise we will get duplicates if we are
 # subscribed to those events.
-has 'publish_to_queues' => (default => sub { 0 });
+has '+publish_to_queues' => (default => sub { 0 });
 
 sub BUILD {}; after 'BUILD' => sub {
     my $self = shift;
