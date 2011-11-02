@@ -64,6 +64,16 @@ sub test_mq {
     $pub_topic->publish({ type => 'ping', params => { bleep => 'bloop' } });
 
     $cv->recv;
+
+    $cv = AE::cv;
+    my $t = AnyEvent->timer(
+        after => 1.5,
+        cb => sub {
+            $cv->send;
+        },
+    );
+    $cv->recv;
+    
     is($ping_count, 2, "Got pings");
 }
 
