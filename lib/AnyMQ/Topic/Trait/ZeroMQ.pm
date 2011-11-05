@@ -4,6 +4,7 @@ use Any::Moose 'Role';
 use AnyEvent::ZeroMQ::Subscribe;
 
 has 'publisher_only' => (is => "ro", isa => "Bool");
+has 'debug' => (is => "rw", isa => "Bool");
 
 # we do not want to notify subscribers of events being published on
 # our publisher bus, otherwise we will get duplicates if we are
@@ -25,6 +26,12 @@ sub BUILD {}; after 'BUILD' => sub {
 
         unless ($event) {
             warn "Got invalid JSON: $json";
+            return;
+        }
+
+        # is this an event we are listening for?
+        if (! $event->{type} || $event->{type} ne $self->name) {
+            warn "discarding $event->{type} event" if $self->debug;
             return;
         }
 

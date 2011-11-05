@@ -60,6 +60,7 @@ sub test_mq {
     $listener->poll(sub { $ping_count++; $cv->end });
 
     # publish
+    $pub_topic->publish({ type => 'pong' });
     $pub_topic->publish({ type => 'ping', params => { bleep => 'bloop' } });
     $pub_topic->publish({ type => 'ping', params => { bleep => 'bloop' } });
 
