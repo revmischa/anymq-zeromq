@@ -11,7 +11,8 @@ has 'debug' => (is => "rw", isa => "Bool", default => 0);
 # subscribed to those events.
 has 'publish_to_queues' => (is => 'rw', default => 0);
 
-has 'read_callback' => (is => 'rw', isa => 'CodeRef');
+# opaque reference to our read callback
+has 'read_callback_ref' => (is => 'rw');
 
 sub BUILD {}; after 'BUILD' => sub {
     my $self = shift;
@@ -21,19 +22,12 @@ sub BUILD {}; after 'BUILD' => sub {
     return unless $self->bus->subscribe_address;
 
     # subscribe to events
-    my $read_cb = sub {
+    my $cb_ref = $self->bus->subscribe($self->name, sub {
         my ($event) = @_;
-        # is this an event we are listening for?
-        if (! $event->{type} || $event->{type} ne $self->name) {
-            warn "discarding $event->{type} event" if $self->debug;
-            return;
-        }
-        
         $self->append_to_queues($event);
-    };
-    $self->read_callback($read_cb);
-    
-    $self->bus->subscribe($read_cb);
+    });
+
+    $self->read_callback_ref($cb_ref);
 };
 
 sub DEMOLISH {}; after 'DEMOLISH' => sub {
@@ -43,8 +37,8 @@ sub DEMOLISH {}; after 'DEMOLISH' => sub {
     return if $igd;
 
     # uninstall our callback
-    $self->bus->unsubscribe($self->read_callback)
-        if $self->read_callback;
+    $self->bus->unsubscribe($self->name, $self->read_callback_ref)
+        if $self->read_callback_ref;
 };
 
 # send events to ZeroMQ server
