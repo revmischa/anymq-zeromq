@@ -4,12 +4,14 @@ use Any::Moose 'Role';
 use AnyEvent::ZeroMQ::Subscribe;
 
 has 'publisher_only' => (is => "ro", isa => "Bool");
-has 'debug' => (is => "rw", isa => "Bool");
+has 'debug' => (is => "rw", isa => "Bool", default => 0);
 
 # we do not want to notify subscribers of events being published on
 # our publisher bus, otherwise we will get duplicates if we are
 # subscribed to those events.
-has '+publish_to_queues' => (default => sub { 0 });
+has 'publish_to_queues' => (is => 'rw', default => 0);
+
+has 'read_callback' => (is => 'rw', isa => 'CodeRef');
 
 sub BUILD {}; after 'BUILD' => sub {
     my $self = shift;
@@ -19,24 +21,30 @@ sub BUILD {}; after 'BUILD' => sub {
     return unless $self->bus->subscribe_address;
 
     # subscribe to events
-    $self->bus->_zmq_sub->on_read(sub {
-        my ($subscription, $json) = @_;
-
-        my $event = $self->bus->_zmq_json->decode($json);
-
-        unless ($event) {
-            warn "Got invalid JSON: $json";
-            return;
-        }
-
+    my $read_cb = sub {
+        my ($event) = @_;
         # is this an event we are listening for?
         if (! $event->{type} || $event->{type} ne $self->name) {
             warn "discarding $event->{type} event" if $self->debug;
             return;
         }
-
+        
         $self->append_to_queues($event);
-    });
+    };
+    $self->read_callback($read_cb);
+    
+    $self->bus->subscribe($read_cb);
+};
+
+sub DEMOLISH {}; after 'DEMOLISH' => sub {
+    my ($self, $igd) = @_;
+
+    # program shutting down, whatever
+    return if $igd;
+
+    # uninstall our callback
+    $self->bus->unsubscribe($self->read_callback)
+        if $self->read_callback;
 };
 
 # send events to ZeroMQ server

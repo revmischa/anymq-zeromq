@@ -1,5 +1,8 @@
 #!perl
 
+use strict;
+use warnings;
+
 use Test::More tests => 3;
 use AnyEvent;
 use AnyMQ;
@@ -48,7 +51,10 @@ sub test_mq {
     my ($pub_bus, $sub_bus) = @_;
     
     my $pub_topic = $pub_bus->topic('ping');
-    my $sub_topic = $sub_bus->topic('ping');
+    my $sub_topic_1 = $sub_bus->topic('ping');
+
+    # make sure we can have subscribers to different topics without breakage
+    my $sub_topic_2 = $sub_bus->topic('blargle');
 
     my $ping_count = 0;
     my $cv = AE::cv;
@@ -56,7 +62,7 @@ sub test_mq {
     $cv->begin;
 
     # subscribe
-    my $listener = $sub_bus->new_listener($sub_topic);
+    my $listener = $sub_bus->new_listener($sub_topic_1);
     $listener->poll(sub { $ping_count++; $cv->end });
 
     # publish
