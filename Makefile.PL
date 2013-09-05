@@ -19,6 +19,11 @@ WriteMakefile(
         'JSON' => 0,
         'AnyEvent::ZeroMQ' => '0.34',
     },
+    META_MERGE          => {
+        resources => {
+            repository => 'https://github.com/revmischa/anymq-zeromq',
+        },
+    },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'AnyMQ-ZeroMQ-*' },
 );
